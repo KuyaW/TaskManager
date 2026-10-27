@@ -1,0 +1,32 @@
+@model TaskItem
+@{
+    ViewData["Title"] = "Edit task";
+}
+
+<div class="form-page">
+    <header class="form-heading">
+        <a class="back-link" asp-action="Index">← Back to the ledger</a>
+        <p class="eyebrow">Revision</p>
+        <h1 class="display-title">Edit <em>task</em>.</h1>
+        <p class="page-subtitle">Change the details, move the date, or close it out. Nothing is set in stone.</p>
+    </header>
+
+    <form asp-action="Edit" method="post" class="sheet">
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+        <partial name="_TaskFormFields" model="Model" />
+
+        <div class="form-actions">
+            <p class="hint">Last updated @Model.UpdatedAt.ToLocalTime().ToString("MMM d, yyyy")</p>
+            <div class="buttons">
+                <a class="btn btn-ghost" asp-action="Index">Cancel</a>
+                <button type="submit" class="btn btn-ink">Save changes</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

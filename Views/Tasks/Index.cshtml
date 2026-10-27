@@ -1,0 +1,330 @@
+@model TaskListViewModel
+@{
+    ViewData["Title"] = "The ledger";
+    var today = DateTime.Today;
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+@functions {
+    private static string DueLabel(DateOnly due)
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+        if (due == today) return "Due today";
+        if (due == today.AddDays(1)) return "Due tomorrow";
+        if (due == today.AddDays(-1)) return "Overdue · yesterday";
+        if (due < today) return $"Overdue · {due:MMM d}";
+        if (due.Year == today.Year) return $"Due {due:MMM d}";
+        return $"Due {due:MMM d, yyyy}";
+    }
+}
+
+<div class="ledger-layout">
+
+    <aside class="rail" aria-label="Ledger filters">
+        <section class="rail-section">
+            <p class="eyebrow">Completion</p>
+            <div class="progress-figure">
+                @Model.Summary.CompletionPercent<span class="unit">%</span>
+            </div>
+            <div class="meter" role="progressbar"
+                 aria-valuenow="@Model.Summary.CompletionPercent"
+                 aria-valuemin="0" aria-valuemax="100"
+                 aria-label="Tasks completed">
+                <span style="width: @Model.Summary.CompletionPercent%"></span>
+            </div>
+            <p class="progress-note">@Model.Summary.Done of @Model.Summary.Total done</p>
+        </section>
+
+        <section class="rail-section">
+            <p class="eyebrow">Status</p>
+            <ul class="rail-list">
+                <li>
+                    <a class="rail-link @(Model.Status is null ? "is-active" : "")"
+                       asp-action="Index"
+                       asp-route-q="@Model.Search"
+                       asp-route-priority="@Model.Priority"
+                       asp-route-category="@Model.Category"
+                       asp-route-sort="@Model.Sort">
+                        <span class="label">All tasks</span>
+                        <span class="rail-count">@Model.Summary.Total</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rail-link @(Model.Status == TaskState.Todo ? "is-active" : "")"
+                       asp-action="Index"
+                       asp-route-status="@TaskState.Todo"
+                       asp-route-q="@Model.Search"
+                       asp-route-priority="@Model.Priority"
+                       asp-route-category="@Model.Category"
+                       asp-route-sort="@Model.Sort">
+                        <span class="label">To do</span>
+                        <span class="rail-count">@Model.Summary.Todo</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rail-link @(Model.Status == TaskState.InProgress ? "is-active" : "")"
+                       asp-action="Index"
+                       asp-route-status="@TaskState.InProgress"
+                       asp-route-q="@Model.Search"
+                       asp-route-priority="@Model.Priority"
+                       asp-route-category="@Model.Category"
+                       asp-route-sort="@Model.Sort">
+                        <span class="label">In progress</span>
+                        <span class="rail-count">@Model.Summary.InProgress</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rail-link @(Model.Status == TaskState.Done ? "is-active" : "")"
+                       asp-action="Index"
+                       asp-route-status="@TaskState.Done"
+                       asp-route-q="@Model.Search"
+                       asp-route-priority="@Model.Priority"
+                       asp-route-category="@Model.Category"
+                       asp-route-sort="@Model.Sort">
+                        <span class="label">Done</span>
+                        <span class="rail-count">@Model.Summary.Done</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <section class="rail-section">
+            <p class="eyebrow">Priority</p>
+            <ul class="rail-list">
+                <li>
+                    <a class="rail-link @(Model.Priority is null ? "is-active" : "")"
+                       asp-action="Index"
+                       asp-route-q="@Model.Search"
+                       asp-route-status="@Model.Status"
+                       asp-route-category="@Model.Category"
+                       asp-route-sort="@Model.Sort">
+                        <span class="label">Any priority</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rail-link @(Model.Priority == TaskPriority.High ? "is-active" : "")"
+                       asp-action="Index"
+                       asp-route-priority="@TaskPriority.High"
+                       asp-route-q="@Model.Search"
+                       asp-route-status="@Model.Status"
+                       asp-route-category="@Model.Category"
+                       asp-route-sort="@Model.Sort">
+                        <span class="label"><span class="priority-dot high"></span>High</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rail-link @(Model.Priority == TaskPriority.Medium ? "is-active" : "")"
+                       asp-action="Index"
+                       asp-route-priority="@TaskPriority.Medium"
+                       asp-route-q="@Model.Search"
+                       asp-route-status="@Model.Status"
+                       asp-route-category="@Model.Category"
+                       asp-route-sort="@Model.Sort">
+                        <span class="label"><span class="priority-dot medium"></span>Medium</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="rail-link @(Model.Priority == TaskPriority.Low ? "is-active" : "")"
+                       asp-action="Index"
+                       asp-route-priority="@TaskPriority.Low"
+                       asp-route-q="@Model.Search"
+                       asp-route-status="@Model.Status"
+                       asp-route-category="@Model.Category"
+                       asp-route-sort="@Model.Sort">
+                        <span class="label"><span class="priority-dot low"></span>Low</span>
+                    </a>
+                </li>
+            </ul>
+
+            @if (Model.Summary.Done > 0)
+            {
+                <form asp-action="ClearCompleted" method="post" data-confirm="Clear every completed task? This cannot be undone.">
+                    <button type="submit" class="rail-action">Clear completed (@Model.Summary.Done)</button>
+                </form>
+            }
+        </section>
+
+        <p class="rail-note">
+            <strong>Quick keys.</strong> Press <kbd>N</kbd> for a new task or <kbd>/</kbd> to search.
+        </p>
+    </aside>
+
+    <section class="content">
+        <header class="page-heading">
+            <div>
+                <p class="eyebrow">@today.ToString("dddd") · @today.ToString("d MMMM yyyy")</p>
+                <h1 class="display-title">The <em>ledger</em>.</h1>
+                <p class="page-subtitle">Everything that needs doing, in one honest list. Tick things off; the page keeps score.</p>
+            </div>
+            <div class="today-stamp" aria-hidden="true">
+                <span class="stamp-day">@today.Day</span>
+                <span class="stamp-label">@today.ToString("MMM yyyy")</span>
+            </div>
+        </header>
+
+        <div class="stats" aria-label="Ledger summary">
+            <div class="stat">
+                <span class="stat-value">@Model.Summary.Open</span>
+                <span class="stat-label">Open tasks</span>
+            </div>
+            <div class="stat @(Model.Summary.DueToday > 0 ? "is-alert" : "")">
+                <span class="stat-value">@Model.Summary.DueToday</span>
+                <span class="stat-label">Due today</span>
+            </div>
+            <div class="stat @(Model.Summary.Overdue > 0 ? "is-alert" : "")">
+                <span class="stat-value">@Model.Summary.Overdue</span>
+                <span class="stat-label">Overdue</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">@Model.Summary.Done</span>
+                <span class="stat-label">Completed</span>
+            </div>
+        </div>
+
+        <form asp-action="Index" method="get" class="toolbar" role="search" data-auto-submit>
+            @if (Model.Status is not null)
+            {
+                <input type="hidden" name="status" value="@Model.Status" />
+            }
+            @if (Model.Priority is not null)
+            {
+                <input type="hidden" name="priority" value="@Model.Priority" />
+            }
+
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+                    <circle cx="8.5" cy="8.5" r="5.25" fill="none" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M12.5 12.5L17 17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                <label class="visually-hidden" for="task-search">Search tasks</label>
+                <input id="task-search"
+                       type="search"
+                       name="q"
+                       value="@Model.Search"
+                       placeholder="Search the ledger…"
+                       autocomplete="off"
+                       maxlength="100" />
+            </div>
+
+            <label class="visually-hidden" for="category-filter">Filter by category</label>
+            <select id="category-filter" name="category" class="filter-select">
+                <option value="">All categories</option>
+                @foreach (var category in Model.Categories)
+                {
+                    <option value="@category" selected="@(category == Model.Category ? "selected" : null)">@category</option>
+                }
+            </select>
+
+            <label class="visually-hidden" for="sort-filter">Sort tasks</label>
+            <select id="sort-filter" name="sort" class="filter-select">
+                <option value="due" selected="@(Model.Sort == "due" ? "selected" : null)">Sort: due date</option>
+                <option value="priority" selected="@(Model.Sort == "priority" ? "selected" : null)">Sort: priority</option>
+                <option value="created" selected="@(Model.Sort == "created" ? "selected" : null)">Sort: newest</option>
+                <option value="title" selected="@(Model.Sort == "title" ? "selected" : null)">Sort: title</option>
+            </select>
+
+            <button type="submit" class="btn btn-quiet toolbar-submit">Filter</button>
+        </form>
+
+        <div class="filter-summary">
+            @if (Model.HasFilters)
+            {
+                <span>Filtered · @Model.Tasks.Count @(Model.Tasks.Count == 1 ? "task" : "tasks")</span>
+                <a asp-action="Index">Clear filters</a>
+            }
+            else
+            {
+                <span>@Model.Tasks.Count @(Model.Tasks.Count == 1 ? "task" : "tasks") on the ledger</span>
+            }
+        </div>
+
+        @if (Model.Tasks.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-seal" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M5 12.5l4.2 4.2L19 6.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                @if (Model.HasFilters)
+                {
+                    <h2>Nothing matches.</h2>
+                    <p>Those filters are looking a little too specific. Loosen them up and the ledger will fill in.</p>
+                    <a class="btn btn-ink" asp-action="Index">Clear filters</a>
+                }
+                else
+                {
+                    <h2>A blank page.</h2>
+                    <p>No tasks yet. Start with the one thing you would be relieved to finish today.</p>
+                    <a class="btn btn-ink" asp-action="Create"><span class="btn-plus" aria-hidden="true">+</span> Add the first task</a>
+                }
+            </div>
+        }
+        else
+        {
+            <ul class="task-list">
+                @for (var i = 0; i < Model.Tasks.Count; i++)
+                {
+                    var task = Model.Tasks[i];
+                    var isDone = task.IsDone;
+                    <li class="task-row @(isDone ? "is-done" : "")" style="--i: @i">
+                        <span class="task-index" aria-hidden="true">@((i + 1).ToString("00"))</span>
+
+                        <form asp-action="Toggle" method="post" class="task-check-form">
+                            <input type="hidden" name="id" value="@task.Id" />
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button type="submit"
+                                    class="task-check"
+                                    title="@(isDone ? "Mark as not done" : "Mark as done")"
+                                    aria-label="@(isDone ? $"Mark {task.Title} as not done" : $"Mark {task.Title} as done")">
+                                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                                    <path d="M2.5 8.5l3.4 3.4 7.6-7.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                        </form>
+
+                        <div class="task-body">
+                            <div class="task-topline">
+                                <a class="task-title" asp-action="Details" asp-route-id="@task.Id">@task.Title</a>
+                                <span class="priority-pill @task.Priority.ToString().ToLowerInvariant()">@task.PriorityLabel</span>
+                                @if (task.Status == TaskState.InProgress)
+                                {
+                                    <span class="status-pill">In progress</span>
+                                }
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(task.Notes))
+                            {
+                                <p class="task-notes">@task.Notes</p>
+                            }
+
+                            <div class="task-meta">
+                                @if (!string.IsNullOrWhiteSpace(task.Category))
+                                {
+                                    <span class="task-category">#@task.Category</span>
+                                }
+                                @if (task.DueDate is { } due)
+                                {
+                                    <span class="task-due @(task.IsOverdue ? "is-overdue" : task.IsDueToday ? "is-today" : "")">@(isDone ? $"Due {due:MMM d}" : DueLabel(due))</span>
+                                }
+                                else
+                                {
+                                    <span>Someday</span>
+                                }
+                                @if (isDone && task.CompletedAt is { } completedAt)
+                                {
+                                    <span>Finished @completedAt.ToLocalTime().ToString("MMM d")</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="task-actions">
+                            <a class="task-action" asp-action="Edit" asp-route-id="@task.Id">Edit</a>
+                            <a class="task-action delete" asp-action="Delete" asp-route-id="@task.Id">Delete</a>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>

@@ -1,0 +1,69 @@
+@model TaskItem
+@{
+    var categories = ViewData["Categories"] as List<string> ?? [];
+}
+
+<div class="field-grid">
+    <div class="field field-full">
+        <label asp-for="Title">
+            <span>Task title</span>
+            <span class="optional">Required</span>
+        </label>
+        <input asp-for="Title" class="form-control" maxlength="120" placeholder="What needs doing?" autocomplete="off" />
+        <span asp-validation-for="Title" class="field-validation-error"></span>
+    </div>
+
+    <div class="field">
+        <label asp-for="Category">
+            <span>Category</span>
+            <span class="optional">Optional</span>
+        </label>
+        <input asp-for="Category" class="form-control" maxlength="50" list="category-options" placeholder="Product, Personal, Admin…" autocomplete="off" />
+        <datalist id="category-options">
+            @foreach (var category in categories)
+            {
+                <option value="@category"></option>
+            }
+        </datalist>
+        <span asp-validation-for="Category" class="field-validation-error"></span>
+    </div>
+
+    <div class="field">
+        <label asp-for="DueDate">
+            <span>Due date</span>
+            <span class="optional">Optional</span>
+        </label>
+        <input asp-for="DueDate" type="date" class="form-control" />
+        <span asp-validation-for="DueDate" class="field-validation-error"></span>
+    </div>
+
+    <div class="field">
+        <label asp-for="Status"><span>Status</span></label>
+        <select asp-for="Status" class="form-select">
+            <option value="@TaskState.Todo">To do</option>
+            <option value="@TaskState.InProgress">In progress</option>
+            <option value="@TaskState.Done">Done</option>
+        </select>
+        <span asp-validation-for="Status" class="field-validation-error"></span>
+    </div>
+
+    <div class="field">
+        <label asp-for="Priority"><span>Priority</span></label>
+        <select asp-for="Priority" class="form-select">
+            <option value="@TaskPriority.Low">Low</option>
+            <option value="@TaskPriority.Medium">Medium</option>
+            <option value="@TaskPriority.High">High</option>
+        </select>
+        <span asp-validation-for="Priority" class="field-validation-error"></span>
+    </div>
+
+    <div class="field field-full">
+        <label asp-for="Notes">
+            <span>Notes</span>
+            <span class="optional">Optional</span>
+        </label>
+        <textarea asp-for="Notes" class="form-control" rows="6" maxlength="2000" placeholder="Context, links, the small print…"></textarea>
+        <p class="field-hint">Keep it short. Future-you will thank present-you.</p>
+        <span asp-validation-for="Notes" class="field-validation-error"></span>
+    </div>
+</div>

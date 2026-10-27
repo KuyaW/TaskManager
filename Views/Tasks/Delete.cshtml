@@ -1,0 +1,39 @@
+@model TaskItem
+@{
+    ViewData["Title"] = "Delete task";
+}
+
+<div class="danger-sheet">
+    <a class="back-link" asp-action="Details" asp-route-id="@Model.Id">← Keep it, go back</a>
+
+    <p class="eyebrow">Point of no return</p>
+    <h1>Delete this task?</h1>
+
+    <div class="danger-target">
+        <p class="title">@Model.Title</p>
+        <p class="meta">
+            @Model.StatusLabel
+            @if (!string.IsNullOrWhiteSpace(Model.Category))
+            {
+                <text> · #@Model.Category</text>
+            }
+            @if (Model.DueDate is { } due)
+            {
+                <text> · due @due.ToString("d MMM yyyy")</text>
+            }
+        </p>
+    </div>
+
+    <p class="danger-copy">
+        This removes the task from the ledger for good. There is no undo, no recycling bin,
+        no second chances. If you only need to close it out, mark it as done instead.
+    </p>
+
+    <form asp-action="Delete" method="post" class="form-actions">
+        <input type="hidden" asp-for="Id" />
+        <div class="buttons">
+            <a class="btn btn-ghost" asp-action="Index">Cancel</a>
+            <button type="submit" class="btn btn-danger">Delete permanently</button>
+        </div>
+    </form>
+</div>

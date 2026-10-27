@@ -3,45 +3,63 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MvcApp</title>
-    <script type="importmap"></script>
+    <meta name="theme-color" content="#f3ede1" />
+    <meta name="description" content="Tandem is a warm, paper-inspired task ledger built with ASP.NET Core and SQLite." />
+    <title>@ViewData["Title"] · Tandem</title>
+    <link rel="icon" href="~/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=IBM+Plex+Mono:wght@400;500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/MvcApp.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">MvcApp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <div class="grain" aria-hidden="true"></div>
+    <a class="skip-link" href="#main">Skip to content</a>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - MvcApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <header class="masthead">
+        <div class="shell masthead-inner">
+            <a class="brand" asp-controller="Tasks" asp-action="Index" aria-label="Tandem — go to the ledger">
+                <span class="brand-seal" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" focusable="false">
+                        <path d="M4.5 10.5l3.4 3.4 7.6-7.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="brand-word">Tandem</span>
+            </a>
+
+            <p class="masthead-tagline">A quiet ledger for loud days.</p>
+
+            <nav class="masthead-nav" aria-label="Primary">
+                <a class="nav-link" asp-controller="Tasks" asp-action="Index">The ledger</a>
+                <a class="btn btn-ink" id="new-task-link" asp-controller="Tasks" asp-action="Create">
+                    <span class="btn-plus" aria-hidden="true">+</span> New task
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main" class="shell site-main">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="shell footer-inner">
+            <p>Tandem · a small task ledger</p>
+            <p class="mono">@DateTime.Today.Year — ASP.NET Core &amp; SQLite</p>
         </div>
     </footer>
+
+    @if (TempData["Message"] is string message)
+    {
+        <div class="flash" role="status" data-flash>
+            <span class="flash-mark" aria-hidden="true">✓</span>
+            <span>@message</span>
+            <button type="button" class="flash-close" data-flash-close aria-label="Dismiss notification">×</button>
+        </div>
+    }
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

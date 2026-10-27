@@ -1,0 +1,94 @@
+@model TaskItem
+@{
+    ViewData["Title"] = Model.Title;
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var statusClass = Model.Status switch
+    {
+        TaskState.InProgress => "progress",
+        TaskState.Done => "done",
+        _ => "todo"
+    };
+}
+
+<div class="detail-layout">
+    <div class="detail-main">
+        <a class="back-link" asp-action="Index">← Back to the ledger</a>
+
+        <div class="detail-kicker">
+            <span class="status-stamp @statusClass">@Model.StatusLabel</span>
+            <span class="priority-pill @Model.Priority.ToString().ToLowerInvariant()">@Model.PriorityLabel priority</span>
+            @if (!string.IsNullOrWhiteSpace(Model.Category))
+            {
+                <span class="task-category mono">#@Model.Category</span>
+            }
+        </div>
+
+        <h1 class="display-title">@Model.Title</h1>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <p class="detail-notes">@Model.Notes</p>
+        }
+        else
+        {
+            <p class="detail-notes is-empty">No notes on this one. Just a task, plain and simple.</p>
+        }
+    </div>
+
+    <aside class="detail-aside" aria-label="Task details">
+        <dl class="meta-list">
+            <div class="meta-row">
+                <dt>Due</dt>
+                <dd class="@(Model.IsOverdue ? "overdue" : "")">
+                    @(Model.DueDate is { } due ? due.ToString("ddd, d MMM yyyy") : "No date set")
+                </dd>
+            </div>
+            <div class="meta-row">
+                <dt>Status</dt>
+                <dd>@Model.StatusLabel</dd>
+            </div>
+            <div class="meta-row">
+                <dt>Priority</dt>
+                <dd>@Model.PriorityLabel</dd>
+            </div>
+            <div class="meta-row">
+                <dt>Category</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.Category) ? "—" : Model.Category)</dd>
+            </div>
+            <div class="meta-row">
+                <dt>Added</dt>
+                <dd>@Model.CreatedAt.ToLocalTime().ToString("d MMM yyyy")</dd>
+            </div>
+            <div class="meta-row">
+                <dt>Updated</dt>
+                <dd>@Model.UpdatedAt.ToLocalTime().ToString("d MMM yyyy")</dd>
+            </div>
+            @if (Model.CompletedAt is { } completedAt)
+            {
+                <div class="meta-row">
+                    <dt>Completed</dt>
+                    <dd>@completedAt.ToLocalTime().ToString("d MMM yyyy")</dd>
+                </div>
+            }
+        </dl>
+
+        <div class="detail-actions">
+            <a class="btn btn-ink" asp-action="Edit" asp-route-id="@Model.Id">Edit task</a>
+
+            <form asp-action="Toggle" method="post">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <button type="submit" class="btn btn-ghost">
+                    @(Model.IsDone ? "Reopen task" : "Mark as done")
+                </button>
+            </form>
+
+            <a class="btn btn-quiet" asp-action="Delete" asp-route-id="@Model.Id">Delete</a>
+        </div>
+
+        <p class="detail-aside-note">
+            Ledger no. @Model.Id.ToString("D4")<br />
+            @(Model.CompletedAt is null ? "Still in motion." : "Filed under done.")
+        </p>
+    </aside>
+</div>

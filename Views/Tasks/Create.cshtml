@@ -1,0 +1,31 @@
+@model TaskItem
+@{
+    ViewData["Title"] = "New task";
+}
+
+<div class="form-page">
+    <header class="form-heading">
+        <a class="back-link" asp-action="Index">← Back to the ledger</a>
+        <p class="eyebrow">A fresh line</p>
+        <h1 class="display-title">New <em>task</em>.</h1>
+        <p class="page-subtitle">Write it down, give it a date, and get it out of your head. You can always edit it later.</p>
+    </header>
+
+    <form asp-action="Create" method="post" class="sheet">
+        <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+        <partial name="_TaskFormFields" model="Model" />
+
+        <div class="form-actions">
+            <p class="hint">No due date? No problem — it lands under “Someday”.</p>
+            <div class="buttons">
+                <a class="btn btn-ghost" asp-action="Index">Cancel</a>
+                <button type="submit" class="btn btn-ink">Add to the ledger</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
