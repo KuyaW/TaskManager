@@ -1,0 +1,23 @@
+# Build output
+bin/
+obj/
+
+# IDE / user files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local SQLite database (created automatically at runtime)
+Data/*.db
+Data/*.db-shm
+Data/*.db-wal
+
+# Local screenshots / scratch files
+/shot-*.png
+/page.html
+/create.html
+/edit.html
+/details.html
+/delete.html
+/done.html
